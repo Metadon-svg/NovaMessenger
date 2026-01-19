@@ -3,18 +3,17 @@ import android.app.Activity
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val TelegramScheme = darkColorScheme(
-    primary = TgBlue,
-    onPrimary = TgTextMain,
-    background = TgBg,
-    surface = TgSurface,
-    onBackground = TgTextMain,
-    onSurface = TgTextMain,
-    surfaceVariant = TgSurface
+private val ObsidianScheme = darkColorScheme(
+    primary = AccentBlue,
+    background = ObsidianBg,
+    surface = ObsidianSurface,
+    onBackground = TextPrimary,
+    onSurface = TextPrimary,
 )
 
 @Composable
@@ -25,18 +24,18 @@ fun NovaMessengerTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Цвет статус бара как у хедера (Surface)
-            window.statusBarColor = TgSurface.toArgb() 
-            window.navigationBarColor = TgBg.toArgb()
+            // Полная прозрачность для Edge-to-Edge
+            window.statusBarColor = Color.Transparent.toArgb()
+            window.navigationBarColor = Color.Transparent.toArgb()
             
             val insets = WindowCompat.getInsetsController(window, view)
-            insets.isAppearanceLightStatusBars = false
+            insets.isAppearanceLightStatusBars = false // Белые иконки
             insets.isAppearanceLightNavigationBars = false
         }
     }
 
     MaterialTheme(
-        colorScheme = TelegramScheme,
+        colorScheme = ObsidianScheme,
         content = content
     )
 }

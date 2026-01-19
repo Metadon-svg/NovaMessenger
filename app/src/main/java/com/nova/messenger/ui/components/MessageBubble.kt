@@ -6,7 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,48 +17,60 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nova.messenger.data.models.Message
 import com.nova.messenger.data.models.MessageStatus
-import com.nova.messenger.ui.theme.* // Импортируем новые цвета (TgBlue и т.д.)
+import com.nova.messenger.ui.theme.*
 
 @Composable
 fun MessageBubble(message: Message) {
     val align = if (message.isFromMe) Alignment.End else Alignment.Start
     
-    // FIX: Используем цвета Telegram вместо удаленных Gradient
-    val backgroundColor = if (message.isFromMe) TgBlue else TgSurface
+    // Obsidian Colors
+    val backgroundColor = if (message.isFromMe) BubbleSelf else BubbleOther
+    val textColor = TextPrimary
     
-    val shape = if (message.isFromMe) RoundedCornerShape(16.dp, 16.dp, 2.dp, 16.dp) 
-               else RoundedCornerShape(16.dp, 16.dp, 16.dp, 2.dp)
+    // Modern shape: G2-like curvature
+    val shape = if (message.isFromMe) {
+        RoundedCornerShape(topStart = 20.dp, topEnd = 4.dp, bottomEnd = 20.dp, bottomStart = 20.dp)
+    } else {
+        RoundedCornerShape(topStart = 4.dp, topEnd = 20.dp, bottomEnd = 20.dp, bottomStart = 20.dp)
+    }
 
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = align) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 1.dp), // Minimal vertical spacing
+        horizontalAlignment = align
+    ) {
         Box(
             modifier = Modifier
                 .widthIn(max = 280.dp)
                 .clip(shape)
-                .background(backgroundColor) // Solid color
-                .padding(horizontal = 10.dp, vertical = 6.dp)
+                .background(backgroundColor)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
             Column {
-                Text(message.text, color = Color.White, fontSize = 16.sp)
+                Text(
+                    text = message.text, 
+                    color = textColor, 
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp
+                )
                 
+                // Meta info (Time + Status)
                 Row(
-                    modifier = Modifier.align(Alignment.End).padding(top = 2.dp),
+                    modifier = Modifier.align(Alignment.End).padding(top = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        message.timestamp, 
-                        color = Color.White.copy(alpha = 0.6f), 
+                        text = message.timestamp, 
+                        color = Color.White.copy(alpha = 0.5f), 
                         fontSize = 11.sp
                     )
                     
                     if (message.isFromMe) {
                         Spacer(modifier = Modifier.width(4.dp))
-                        val icon = when(message.status) {
-                            MessageStatus.SENT -> Icons.Default.Check
-                            MessageStatus.DELIVERED -> Icons.Default.DoneAll
-                            MessageStatus.READ -> Icons.Default.DoneAll
-                        }
-                        // Зеленая галочка если прочитано, иначе белая
-                        val tint = if(message.status == MessageStatus.READ) TgGreen else Color.White.copy(0.6f)
+                        val icon = if(message.status == MessageStatus.READ) Icons.Default.DoneAll else Icons.Default.Done
+                        val tint = if(message.status == MessageStatus.READ) Color.White else Color.White.copy(alpha = 0.5f)
+                        
                         Icon(icon, null, modifier = Modifier.size(14.dp), tint = tint)
                     }
                 }

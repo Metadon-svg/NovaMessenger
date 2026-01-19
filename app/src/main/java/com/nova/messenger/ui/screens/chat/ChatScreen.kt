@@ -1,5 +1,10 @@
 package com.nova.messenger.ui.screens.chat
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,13 +15,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate // <--- ВОТ ЭТОГО НЕ ХВАТАЛО
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -41,105 +47,124 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
         if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1)
     }
 
-    // ТЕМНЫЕ ОБОИ (Градиент)
-    val wallpaperBrush = Brush.verticalGradient(
+    // Gradient Background (Subtle Deep Blue to Black)
+    val bgBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFF0F1724), 
-            Color(0xFF1E2833), 
-            Color(0xFF121212)
+            Color(0xFF050A14), // Very deep blue top
+            Color(0xFF000000)  // Pitch black bottom
         )
     )
 
     Scaffold(
-        containerColor = Color.Transparent, 
+        containerColor = Color.Black,
         topBar = {
-            // Полупрозрачный хедер (Glass)
+            // Glass Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(TgSurface.copy(alpha = 0.85f))
+                    .background(ObsidianBg.copy(alpha = 0.7f)) // Semi-transparent
             ) {
+                // Separator line
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(0.5.dp)
+                        .background(Color.White.copy(alpha = 0.1f))
+                )
+                
                 TopAppBar(
                     title = { 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(TgBlue), contentAlignment = Alignment.Center) {
-                                 Text(chatName.take(1), color = Color.White, fontWeight = FontWeight.Bold)
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(chatName, style = MaterialTheme.typography.titleMedium, color = TgTextMain, fontWeight = FontWeight.Bold)
-                                Text("был(а) в 13:44", style = MaterialTheme.typography.bodySmall, color = TgTextSec)
-                            }
+                        Column {
+                            Text(
+                                chatName, 
+                                style = MaterialTheme.typography.titleMedium, 
+                                color = TextPrimary, 
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                "Online", 
+                                style = MaterialTheme.typography.bodySmall, 
+                                color = AccentBlue
+                            )
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.Default.ArrowBack, "Back", tint = TgTextMain)
+                            Icon(Icons.Default.ArrowBack, "Back", tint = TextPrimary)
                         }
                     },
                     actions = {
-                        IconButton(onClick = {}) { Icon(Icons.Default.Call, null, tint = TgTextMain) }
-                        IconButton(onClick = {}) { Icon(Icons.Default.MoreVert, null, tint = TgTextMain) }
+                        // Minimalistic actions
+                        IconButton(onClick = {}) { 
+                            Box(
+                                modifier = Modifier.size(36.dp).clip(CircleShape).background(ObsidianSurfaceHighlight),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.MoreHoriz, null, tint = TextPrimary, modifier = Modifier.size(20.dp)) 
+                            }
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
             }
         }
     ) { padding ->
-        // ФОН И КОНТЕНТ
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(wallpaperBrush)
-                .padding(padding)
+                .background(bgBrush)
         ) {
-            // СПИСОК СООБЩЕНИЙ
             LazyColumn(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 12.dp),
-                contentPadding = PaddingValues(bottom = 90.dp), 
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                    .padding(horizontal = 16.dp), // More breathing room
+                contentPadding = PaddingValues(
+                    top = padding.calculateTopPadding() + 8.dp, 
+                    bottom = 100.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(4.dp) // Tighter messages
             ) {
                 items(messages) { msg ->
                     MessageBubble(msg)
                 }
             }
 
-            // ПЛАВАЮЩЕЕ ПОЛЕ ВВОДА ("LIQUID GLASS")
+            // --- OBSIDIAN INPUT BAR ---
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 8.dp, vertical = 12.dp)
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(Color(0xFF1E1E1E).copy(alpha = 0.85f))
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(28.dp))
+                    .padding(horizontal = 16.dp, vertical = 16.dp) // Floating
+                    .navigationBarsPadding() // Respect gestures
             ) {
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clip(RoundedCornerShape(28.dp)) // Super rounded
+                        .background(ObsidianSurfaceHighlight) // Lighter than bg
+                        .border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(28.dp)), // Glass border
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Кнопка GIF
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .padding(6.dp)
-                            .clip(CircleShape)
-                            .border(1.5.dp, TgTextSec, CircleShape),
-                        contentAlignment = Alignment.Center
+                    
+                    // Attach Button (Plus icon)
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier.padding(start = 4.dp)
                     ) {
-                        Text("GIF", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = TgTextSec)
+                        Icon(Icons.Outlined.Add, null, tint = TextSecondary)
                     }
 
-                    // Поле ввода
+                    // Input Field
                     Box(modifier = Modifier.weight(1f)) {
                         if (text.isEmpty()) {
                             Text(
-                                "Сообщение", 
-                                color = TgTextSec, 
+                                "Message...", 
+                                color = TextSecondary, 
+                                fontSize = 16.sp,
                                 modifier = Modifier.padding(start = 8.dp)
                             )
                         }
@@ -152,32 +177,44 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
-                                cursorColor = TgBlue,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White
+                                cursorColor = AccentBlue,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
                             ),
                             singleLine = true
                         )
                     }
 
-                    // Иконки справа
-                    IconButton(onClick = {}) { 
-                        // Теперь rotate работает, так как мы добавили импорт
-                        Icon(Icons.Default.AttachFile, null, tint = TgTextSec, modifier = Modifier.rotate(45f)) 
-                    }
-                    
-                    if (text.isBlank()) {
-                        IconButton(onClick = {}) { 
-                            Icon(Icons.Outlined.CameraAlt, null, tint = TgTextSec) 
-                        }
-                    } else {
+                    // Dynamic Action Button
+                    AnimatedVisibility(
+                        visible = text.isNotBlank(),
+                        enter = scaleIn() + fadeIn(),
+                        exit = scaleOut() + fadeOut()
+                    ) {
                         IconButton(
                             onClick = {
                                 MockRepository.sendMessage(chatId, text)
                                 text = ""
-                            }
+                            },
+                            modifier = Modifier
+                                .padding(end = 6.dp)
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(AccentBlue)
                         ) {
-                             Icon(Icons.Default.Send, null, tint = TgBlue)
+                            Icon(Icons.Default.ArrowUpward, null, tint = Color.White)
+                        }
+                    }
+                    
+                    AnimatedVisibility(
+                        visible = text.isBlank(),
+                        enter = scaleIn() + fadeIn(),
+                        exit = scaleOut() + fadeOut()
+                    ) {
+                        Row {
+                             IconButton(onClick = {}) { 
+                                Icon(Icons.Outlined.CameraAlt, null, tint = TextSecondary) 
+                            }
                         }
                     }
                 }
