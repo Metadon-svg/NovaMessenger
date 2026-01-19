@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -18,18 +19,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nova.messenger.data.models.Message
-import com.nova.messenger.data.models.MessageStatus
 import com.nova.messenger.data.repository.MockRepository
-import com.nova.messenger.ui.theme.BlueGradient
-import com.nova.messenger.ui.theme.DarkGray
-import com.nova.messenger.utils.TimeUtils
+import com.nova.messenger.ui.components.MessageBubble
+import com.nova.messenger.ui.theme.* // Tg цвета
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
-    // ВАЖНО: collectAsState для реактивности
     val allMessages by MockRepository.getMessages(chatId).collectAsState(initial = emptyList())
-    // Фильтруем сообщения конкретно для этого чата
     val messages = allMessages.filter { it.chatId == chatId }
     
     var text by remember { mutableStateOf("") }
@@ -40,93 +37,86 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
     }
 
     Scaffold(
+        containerColor = TgBg, // Темный фон
         topBar = {
             TopAppBar(
                 title = { 
-                    Column {
-                        Text(chatName, style = MaterialTheme.typography.titleMedium)
-                        Text("online", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(TgBlue), contentAlignment = Alignment.Center) {
+                             Text(chatName.take(1), color = Color.White)
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(chatName, style = MaterialTheme.typography.titleMedium, color = TgTextMain)
+                            Text("online", style = MaterialTheme.typography.bodySmall, color = TgBlue)
+                        }
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, "Back")
+                        Icon(Icons.Default.ArrowBack, "Back", tint = TgTextMain)
                     }
                 },
                 actions = {
-                    IconButton(onClick = {}) { Icon(Icons.Default.Call, "Call") }
-                    IconButton(onClick = {}) { Icon(Icons.Default.MoreVert, "More") }
-                }
+                    IconButton(onClick = {}) { Icon(Icons.Default.Call, null, tint = TgTextMain) }
+                    IconButton(onClick = {}) { Icon(Icons.Default.MoreVert, null, tint = TgTextMain) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = TgSurface)
             )
         },
         bottomBar = {
-            Surface(shadowElevation = 8.dp) {
+            // Панель ввода как в Telegram
+            Column {
+                Divider(color = Color.Black, thickness = 0.5.dp)
                 Row(
-                    modifier = Modifier.padding(8.dp).fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(TgSurface)
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.Bottom
                 ) {
-                    IconButton(onClick = {}) { Icon(Icons.Default.AttachFile, "Attach", tint = Color.Gray) }
+                    IconButton(onClick = {}) { Icon(Icons.Default.SentimentSatisfied, null, tint = TgTextSec) }
+                    
                     OutlinedTextField(
                         value = text,
                         onValueChange = { text = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Message") },
-                        shape = RoundedCornerShape(20.dp),
+                        placeholder = { Text("Message", color = TgTextSec) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedTextColor = TgTextMain,
+                            unfocusedTextColor = TgTextMain
+                        ),
                         maxLines = 4
                     )
-                    IconButton(onClick = {
-                        if (text.isNotBlank()) {
+                    
+                    if (text.isBlank()) {
+                        IconButton(onClick = {}) { Icon(Icons.Default.AttachFile, null, tint = TgTextSec) }
+                        IconButton(onClick = {}) { Icon(Icons.Default.Mic, null, tint = TgTextSec) }
+                    } else {
+                        IconButton(onClick = {
                             MockRepository.sendMessage(chatId, text)
                             text = ""
+                        }) {
+                            Icon(Icons.Default.Send, "Send", tint = TgBlue)
                         }
-                    }) {
-                        Icon(Icons.Default.Send, "Send", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
         }
     ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.padding(padding).fillMaxSize().padding(horizontal = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            items(messages) { msg ->
-                MessageBubble(msg)
-            }
-        }
-    }
-}
-
-@Composable
-fun MessageBubble(message: Message) {
-    val align = if (message.isFromMe) Alignment.End else Alignment.Start
-    val bg = if (message.isFromMe) BlueGradient else androidx.compose.ui.graphics.SolidColor(DarkGray)
-    val shape = if (message.isFromMe) RoundedCornerShape(16.dp, 16.dp, 2.dp, 16.dp) 
-               else RoundedCornerShape(16.dp, 16.dp, 16.dp, 2.dp)
-
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = align) {
-        Box(
-            modifier = Modifier
-                .widthIn(max = 280.dp)
-                .clip(shape)
-                .background(bg)
-                .padding(10.dp)
-        ) {
-            Column {
-                Text(message.text, color = Color.White)
-                Row(modifier = Modifier.align(Alignment.End), verticalAlignment = Alignment.CenterVertically) {
-                    Text(message.timestamp, color = Color.White.copy(0.7f), fontSize = 10.sp)
-                    if (message.isFromMe) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        val icon = when(message.status) {
-                            MessageStatus.SENT -> Icons.Default.Check
-                            MessageStatus.DELIVERED -> Icons.Default.DoneAll
-                            MessageStatus.READ -> Icons.Default.DoneAll
-                        }
-                        val tint = if(message.status == MessageStatus.READ) Color(0xFF53EDC3) else Color.White.copy(0.7f)
-                        Icon(icon, null, modifier = Modifier.size(12.dp), tint = tint)
-                    }
+        // Фоновая картинка (паттерн) симулируется цветом
+        Box(modifier = Modifier.fillMaxSize().background(TgBg).padding(padding)) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                items(messages) { msg ->
+                    MessageBubble(msg)
                 }
             }
         }

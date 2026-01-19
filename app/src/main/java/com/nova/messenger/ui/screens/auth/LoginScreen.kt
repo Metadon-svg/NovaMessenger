@@ -2,7 +2,10 @@ package com.nova.messenger.ui.screens.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,88 +18,101 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nova.messenger.data.repository.MockRepository
 import com.nova.messenger.ui.navigation.Screen
-import com.nova.messenger.ui.theme.PremiumGradient
-import com.nova.messenger.ui.theme.Primary
+import com.nova.messenger.ui.theme.* // Импорт Tg цветов
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
 
+    // Фон Telegram Dark
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PremiumGradient),
+            .background(TgBg),
         contentAlignment = Alignment.Center
     ) {
-        Card(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Black.copy(alpha = 0.5f)
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(32.dp)
+            // Логотип (Круглый синий с самолетиком или буквой)
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(TgBlue),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("N", fontSize = 48.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text("Welcome Back", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                Text("Enter the future of messaging", fontSize = 14.sp, color = Color.Gray)
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // FIX: Используем правильные параметры цветов для этой версии SDK
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text("Username") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Primary,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = Primary,
-                        unfocusedLabelColor = Color.Gray,
-                        // Убрали containerColor, используем focused/unfocused
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    )
+                // Имитация бумажного самолетика
+                Icon(
+                    Icons.Default.ArrowForward, 
+                    contentDescription = null, 
+                    tint = Color.White,
+                    modifier = Modifier.size(50.dp).rotate(-45f) 
                 )
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-                Button(
-                    onClick = { 
-                        MockRepository.login(username.ifBlank { "User" })
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary)
-                ) {
-                    Text("CONTINUE", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
+            Text(
+                "Nova Messenger",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = TgTextMain
+            )
+            
+            Text(
+                "Please enter your username",
+                fontSize = 14.sp,
+                color = TgTextSec,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Поле ввода в стиле Telegram
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Username") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TgTextMain,
+                    unfocusedTextColor = TgTextMain,
+                    focusedBorderColor = TgBlue,
+                    unfocusedBorderColor = TgSurface,
+                    focusedLabelColor = TgBlue,
+                    unfocusedLabelColor = TgTextSec,
+                    containerColor = Color.Transparent,
+                    cursorColor = TgBlue
+                )
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Кнопка
+            Button(
+                onClick = { 
+                    MockRepository.login(username.ifBlank { "User" })
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TgBlue)
+            ) {
+                Text("Start Messaging", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
+
+// Хелпер для поворота иконки (если еще нет)
+fun androidx.compose.ui.Modifier.rotate(degrees: Float) = this.then(
+    androidx.compose.ui.Modifier.graphicsLayer(rotationZ = degrees)
+)
