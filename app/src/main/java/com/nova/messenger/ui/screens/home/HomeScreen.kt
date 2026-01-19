@@ -2,7 +2,6 @@ package com.nova.messenger.ui.screens.home
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,38 +31,24 @@ import kotlinx.coroutines.launch
 fun HomeScreen(navController: NavController) {
     val chats by MockRepository.chats.collectAsState()
     val user by MockRepository.currentUser.collectAsState()
-    val context = LocalContext.current
-    
-    // Состояние поиска
-    var isSearchActive by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-    
-    // Фильтрация чатов
-    val filteredChats = chats.filter { 
-        it.username.contains(searchQuery, ignoreCase = true) || 
-        it.lastMessage.contains(searchQuery, ignoreCase = true)
-    }
     
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = TgSurface,
-                drawerContentColor = TgTextMain,
+                drawerContainerColor = TgSurface, 
+                drawerContentColor = Color.White,
                 modifier = Modifier.width(300.dp)
             ) {
-                // Header
+                // Drawer Header
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color(0xFF232E3C))
-                        .clickable { 
-                            navController.navigate(Screen.Profile.route)
-                            scope.launch { drawerState.close() }
-                        }
                         .padding(16.dp)
                 ) {
                     Box(modifier = Modifier.size(64.dp).clip(CircleShape).background(TgBlue), contentAlignment = Alignment.Center) {
@@ -74,17 +59,11 @@ fun HomeScreen(navController: NavController) {
                     Text(user.bio, color = TgTextSec, fontSize = 14.sp)
                 }
                 Divider(color = Color.Black, thickness = 0.5.dp)
-
-                // Items with TOAST functionality
-                DrawerItem(Icons.Default.Group, "New Group") {
-                    Toast.makeText(context, "Create Group feature coming soon", Toast.LENGTH_SHORT).show()
-                }
-                DrawerItem(Icons.Default.Person, "Contacts") {
-                    Toast.makeText(context, "Accessing contacts...", Toast.LENGTH_SHORT).show()
-                }
-                DrawerItem(Icons.Default.Call, "Calls") {
-                    Toast.makeText(context, "Call history empty", Toast.LENGTH_SHORT).show()
-                }
+                
+                // Menu Items
+                DrawerItem(Icons.Default.Group, "New Group") {}
+                DrawerItem(Icons.Default.Person, "Contacts") {}
+                DrawerItem(Icons.Default.Call, "Calls") {}
                 DrawerItem(Icons.Default.Bookmark, "Saved Messages") {
                     navController.navigate(Screen.Chat.createRoute("1", "Saved Messages"))
                     scope.launch { drawerState.close() }
@@ -98,77 +77,40 @@ fun HomeScreen(navController: NavController) {
     ) {
         Scaffold(
             topBar = {
-                if (isSearchActive) {
-                    // Search Bar Mode
-                    TopAppBar(
-                        title = {
-                            TextField(
-                                value = searchQuery,
-                                onValueChange = { searchQuery = it },
-                                placeholder = { Text("Search chats...", color = TgTextSec) },
-                                colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedIndicatorColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White
-                                ),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = { 
-                                isSearchActive = false 
-                                searchQuery = ""
-                            }) {
-                                Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = TgSurface)
+                // ЧИСТАЯ КЛАССИЧЕСКАЯ ШАПКА
+                TopAppBar(
+                    title = { Text("Nova", fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.Menu, "Menu", tint = Color.White)
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Search, "Search", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = TgSurface,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
                     )
-                } else {
-                    // Normal Mode
-                    TopAppBar(
-                        title = { Text("Nova", fontWeight = FontWeight.Bold) },
-                        navigationIcon = {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(Icons.Default.Menu, "Menu")
-                            }
-                        },
-                        actions = {
-                            IconButton(onClick = { isSearchActive = true }) { 
-                                Icon(Icons.Default.Search, "Search") 
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = TgSurface,
-                            titleContentColor = Color.White,
-                            navigationIconContentColor = Color.White,
-                            actionIconContentColor = Color.White
-                        )
-                    )
-                }
+                )
             },
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { Toast.makeText(context, "New Message", Toast.LENGTH_SHORT).show() },
-                    containerColor = TgBlue,
-                    contentColor = Color.White,
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Default.Edit, "New Chat")
+                FloatingActionButton(onClick = {}, containerColor = AccentBlue, shape = CircleShape) {
+                    Icon(Icons.Default.Edit, null, tint = Color.White)
                 }
             },
             containerColor = TgBg
         ) { padding ->
             LazyColumn(modifier = Modifier.padding(padding)) {
-                items(filteredChats) { chat ->
+                items(chats) { chat ->
                     ChatItem(chat) { 
                         navController.navigate(Screen.Chat.createRoute(chat.id, chat.username)) 
                     }
-                    Divider(color = Color.Black, thickness = 0.5.dp, modifier = Modifier.padding(start = 76.dp))
+                    Divider(color = Color.Black, thickness = 0.5.dp, modifier = Modifier.padding(start = 74.dp))
                 }
             }
         }
