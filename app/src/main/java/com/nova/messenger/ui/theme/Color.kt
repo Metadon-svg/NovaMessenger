@@ -2,41 +2,32 @@ package com.nova.messenger.ui.theme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-// --- 2026 VISION PALETTE ---
-val DeepSpaceBg = Color(0xFF050505)
-val GlassPanel = Color(0xFF1E1E1E)
-val GlassBorder = Color(0xFFFFFFFF)
+// --- CLEAN DARK PALETTE ---
+val CleanBg = Color(0xFF0F1115)           // Благородный черный (фон списка)
+val CleanSurface = Color(0xFF1C1F26)      // Фон панелей
+val CleanChatBg = Color(0xFF0E1621)       // Классический темный фон чата Telegram
+val AccentBlue = Color(0xFF3390EC)        // Telegram Blue
 
-val NeonBlue = Color(0xFF2E8AF7)
-val NeonPurple = Color(0xFF8E2DE2)
+val TextWhite = Color(0xFFFFFFFF)
+val TextGray = Color(0xFF788290)
 
-val TextBright = Color(0xFFFFFFFF)
-val TextMuted = Color(0xFF8899A6)
+// Пузырьки
+val BubbleMy = Color(0xFF3390EC)          // Мой (Синий)
+val BubbleOther = Color(0xFF1F2936)       // Чужой (Темный)
 
-// Gradient
-val VisionGradient = Brush.linearGradient(
-    colors = listOf(Color(0xFF2E8AF7), Color(0xFF4A00E0))
-)
+// Градиенты убраны в пользу чистого цвета, но оставлены переменные для совместимости
+val VisionGradient = Brush.linearGradient(listOf(AccentBlue, AccentBlue))
 
-// --- COMPATIBILITY LAYER (ЧТОБЫ НЕ ЛОМАЛАСЬ СБОРКА) ---
-// Мы просто перенаправляем старые названия на новые цвета
-val AccentBlue = NeonBlue
-val ObsidianBg = DeepSpaceBg
-val ObsidianSurface = GlassPanel
-val TextPrimary = TextBright
-val TextSecondary = TextMuted
-val DividerColor = Color(0xFF2C2C2E)
-
-val TgBg = DeepSpaceBg
-val TgSurface = GlassPanel
-val TgBlue = NeonBlue
-val TgTextMain = TextBright
-val TgTextSec = TextMuted
+// --- COMPATIBILITY ---
+val TgBg = CleanBg
+val TgSurface = CleanSurface
+val TgBlue = AccentBlue
+val TgTextMain = TextWhite
+val TgTextSec = TextGray
 val TgItem = Color.Transparent 
-val BadgeColor = NeonBlue
-val MutedBadge = Color(0xFF333333)
-val TgGreen = Color(0xFF00FF94) 
+val BadgeColor = AccentBlue
+val MutedBadge = Color(0xFF353D48)
+val TgGreen = Color(0xFF49B669)
 
-// Bubble Colors
-val BubbleSelf = NeonBlue // Заглушка, реально используется градиент
-val BubbleOther = GlassPanel
+val BubbleSelf = BubbleMy
+val BubbleOtherColor = BubbleOther // Renamed to avoid conflict
