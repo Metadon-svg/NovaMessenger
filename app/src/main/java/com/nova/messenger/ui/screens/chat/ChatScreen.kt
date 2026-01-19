@@ -50,13 +50,8 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
         if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1)
     }
 
-    // ОБОИ: Глубокий космос (Deep Space)
     val wallpaperBrush = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFF020024), 
-            Color(0xFF090979), 
-            Color(0xFF000000)
-        )
+        colors = listOf(Color(0xFF020024), Color(0xFF090979), Color(0xFF000000))
     )
 
     Scaffold(
@@ -66,22 +61,14 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.4f)) // Легкое затемнение
+                    .background(Color.Black.copy(alpha = 0.4f))
             ) {
-                // Blur Effect simulation via border and alpha
                 Box(modifier = Modifier.matchParentSize().border(0.5.dp, Color.White.copy(0.05f)))
                 
                 TopAppBar(
                     title = { 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // Градиентная аватарка
-                            Box(
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(VisionGradient), 
-                                contentAlignment = Alignment.Center
-                            ) {
+                            Box(modifier = Modifier.size(42.dp).clip(CircleShape).background(VisionGradient), contentAlignment = Alignment.Center) {
                                  Text(chatName.take(1), color = Color.White, fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.width(12.dp))
@@ -105,53 +92,62 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
             }
         }
     ) { padding ->
-        // ФОН
         Box(modifier = Modifier.fillMaxSize().background(wallpaperBrush).padding(padding)) {
             
-            // СООБЩЕНИЯ
+            // MESSAGES
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
-                contentPadding = PaddingValues(bottom = 100.dp), // Место под Floating Bar
+                contentPadding = PaddingValues(bottom = 140.dp), // Место под меню
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(messages) { msg -> MessageBubble(msg) }
             }
 
-            // --- LIQUID GLASS INPUT (ПАРЯЩАЯ КАПСУЛА) ---
+            // --- ATTACHMENT MENU (VISION STYLE) ---
+            AnimatedVisibility(
+                visible = isAttachOpen,
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 100.dp) // Над полем ввода
+            ) {
+                AttachMenu(onItemClick = { 
+                    isAttachOpen = false
+                    Toast.makeText(context, "Selected: $it", Toast.LENGTH_SHORT).show()
+                })
+            }
+
+            // --- INPUT CAPSULE ---
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 12.dp, vertical = 24.dp) // Большой отступ снизу
+                    .padding(horizontal = 12.dp, vertical = 24.dp)
                     .fillMaxWidth()
-                    .height(60.dp) // Высокая капсула
-                    .clip(RoundedCornerShape(30.dp)) // Полный круг
-                    .background(Color(0xFF101010).copy(alpha = 0.75f)) // Полупрозрачность
-                    .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(30.dp)) // Блик
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(30.dp))
+                    .background(Color(0xFF101010).copy(alpha = 0.85f))
+                    .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(30.dp))
             ) {
                 Row(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Кнопка вложений (Слева, с градиентом при нажатии)
+                    // Attach Button (Plus)
                     IconButton(onClick = { isAttachOpen = !isAttachOpen }) { 
                         Icon(
-                            Icons.Default.Add, 
-                            null, 
+                            Icons.Default.Add, null, 
                             tint = if(isAttachOpen) NeonBlue else TextMuted,
                             modifier = Modifier
                                 .size(28.dp)
-                                .background(if(isAttachOpen) Color.White.copy(0.1f) else Color.Transparent, CircleShape)
                                 .rotate(if(isAttachOpen) 45f else 0f)
                         ) 
                     }
 
-                    // Поле ввода
+                    // Input
                     Box(modifier = Modifier.weight(1f)) {
                         if (text.isEmpty() && !isRecording) {
                             Text("Message...", color = TextMuted, fontSize = 16.sp, modifier = Modifier.padding(start = 8.dp))
                         }
-                        
                         TextField(
                             value = text, onValueChange = { text = it },
                             modifier = Modifier.fillMaxWidth(),
@@ -165,21 +161,14 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
                     }
                     
                     if (text.isBlank()) {
-                        IconButton(onClick = { /* Camera */ }) { 
-                             Icon(Icons.Outlined.CameraAlt, null, tint = TextMuted) 
-                        }
-                        // Mic Button (Neon)
+                        IconButton(onClick = {}) { Icon(Icons.Outlined.CameraAlt, null, tint = TextMuted) }
                         IconButton(onClick = { isRecording = !isRecording }) { 
                             Icon(Icons.Default.Mic, null, tint = if(isRecording) Color.Red else TextMuted) 
                         }
                     } else {
-                        // SEND BUTTON (NEON GLOW)
                         IconButton(
                             onClick = { MockRepository.sendMessage(chatId, text); text = "" },
-                            modifier = Modifier
-                                .size(42.dp)
-                                .clip(CircleShape)
-                                .background(VisionGradient)
+                            modifier = Modifier.size(42.dp).clip(CircleShape).background(VisionGradient)
                         ) {
                              Icon(Icons.Default.ArrowUpward, null, tint = Color.White)
                         }
@@ -187,5 +176,44 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
                 }
             }
         }
+    }
+}
+
+// --- КРАСИВОЕ МЕНЮ ВЛОЖЕНИЙ ---
+@Composable
+fun AttachMenu(onItemClick: (String) -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E).copy(alpha = 0.9f)), // Glass
+        shape = RoundedCornerShape(24.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(0.1f))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                AttachItem(Icons.Default.Image, "Gallery", Color(0xFF6DC5E3), onItemClick)
+                AttachItem(Icons.Default.InsertDriveFile, "File", Color(0xFF8E79B5), onItemClick)
+                AttachItem(Icons.Default.LocationOn, "Location", Color(0xFF5BAA61), onItemClick)
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                AttachItem(Icons.Default.Poll, "Poll", Color(0xFFE4A951), onItemClick)
+                AttachItem(Icons.Default.Person, "Contact", Color(0xFF538BB8), onItemClick)
+                AttachItem(Icons.Default.MusicNote, "Music", Color(0xFFDD6157), onItemClick)
+            }
+        }
+    }
+}
+
+@Composable
+fun AttachItem(icon: ImageVector, label: String, color: Color, onClick: (String) -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick(label) }) {
+        Box(
+            modifier = Modifier.size(56.dp).clip(CircleShape).background(color),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, null, tint = Color.White, modifier = Modifier.size(28.dp))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(label, fontSize = 12.sp, color = Color.White)
     }
 }
