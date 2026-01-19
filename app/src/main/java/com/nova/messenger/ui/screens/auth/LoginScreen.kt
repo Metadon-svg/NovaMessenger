@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -18,8 +19,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nova.messenger.data.repository.MockRepository
 import com.nova.messenger.ui.navigation.Screen
-import com.nova.messenger.ui.theme.* // Импорт Tg цветов
+import com.nova.messenger.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
@@ -35,7 +37,7 @@ fun LoginScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(32.dp)
         ) {
-            // Логотип (Круглый синий с самолетиком или буквой)
+            // Логотип
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -43,7 +45,6 @@ fun LoginScreen(navController: NavController) {
                     .background(TgBlue),
                 contentAlignment = Alignment.Center
             ) {
-                // Имитация бумажного самолетика
                 Icon(
                     Icons.Default.ArrowForward, 
                     contentDescription = null, 
@@ -70,7 +71,7 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Поле ввода в стиле Telegram
+            // Поле ввода (ИСПРАВЛЕНЫ ЦВЕТА)
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -85,14 +86,15 @@ fun LoginScreen(navController: NavController) {
                     unfocusedBorderColor = TgSurface,
                     focusedLabelColor = TgBlue,
                     unfocusedLabelColor = TgTextSec,
-                    containerColor = Color.Transparent,
-                    cursorColor = TgBlue
+                    cursorColor = TgBlue,
+                    // FIX: Явно указываем цвета контейнера
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent
                 )
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Кнопка
             Button(
                 onClick = { 
                     MockRepository.login(username.ifBlank { "User" })
@@ -111,8 +113,3 @@ fun LoginScreen(navController: NavController) {
         }
     }
 }
-
-// Хелпер для поворота иконки (если еще нет)
-fun androidx.compose.ui.Modifier.rotate(degrees: Float) = this.then(
-    androidx.compose.ui.Modifier.graphicsLayer(rotationZ = degrees)
-)
