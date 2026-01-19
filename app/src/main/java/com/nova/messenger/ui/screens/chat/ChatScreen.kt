@@ -1,6 +1,5 @@
 package com.nova.messenger.ui.screens.chat
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,44 +7,45 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nova.messenger.data.models.Message
+import com.nova.messenger.data.models.MessageStatus
 import com.nova.messenger.data.repository.MockRepository
-import com.nova.messenger.ui.components.MessageBubble
+import com.nova.messenger.ui.theme.BlueGradient
+import com.nova.messenger.ui.theme.DarkGray
 import com.nova.messenger.utils.TimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
-    val messages = remember { mutableStateListOf<Message>().apply { addAll(MockRepository.getMessages(chatId)) } }
+    // ВАЖНО: collectAsState для реактивности
+    val allMessages by MockRepository.getMessages(chatId).collectAsState(initial = emptyList())
+    // Фильтруем сообщения конкретно для этого чата
+    val messages = allMessages.filter { it.chatId == chatId }
+    
     var text by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size) {
-        listState.animateScrollToItem(messages.size)
+        if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1)
     }
 
-    // FIX: Удален параметр containerColor, цвет берется из темы
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { 
                     Column {
                         Text(chatName, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = "online", 
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Text("online", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                     }
                 },
                 navigationIcon = {
@@ -53,49 +53,34 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
                         Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                actions = {
+                    IconButton(onClick = {}) { Icon(Icons.Default.Call, "Call") }
+                    IconButton(onClick = {}) { Icon(Icons.Default.MoreVert, "More") }
+                }
             )
         },
         bottomBar = {
-            Surface(
-                shadowElevation = 8.dp,
-                color = MaterialTheme.colorScheme.surface
-            ) {
+            Surface(shadowElevation = 8.dp) {
                 Row(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .fillMaxWidth(),
+                    modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(onClick = {}) { Icon(Icons.Default.AttachFile, "Attach", tint = Color.Gray) }
                     OutlinedTextField(
                         value = text,
                         onValueChange = { text = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Message...") },
-                        shape = RoundedCornerShape(24.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent,
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        ),
+                        placeholder = { Text("Message") },
+                        shape = RoundedCornerShape(20.dp),
                         maxLines = 4
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        onClick = {
-                            if (text.isNotBlank()) {
-                                val timeNow = TimeUtils.getCurrentTime()
-                                messages.add(Message("new_${System.currentTimeMillis()}", text, true, timeNow))
-                                text = ""
-                            }
-                        },
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp))
-                    ) {
-                        Icon(Icons.Default.Send, "Send", tint = Color.White)
+                    IconButton(onClick = {
+                        if (text.isNotBlank()) {
+                            MockRepository.sendMessage(chatId, text)
+                            text = ""
+                        }
+                    }) {
+                        Icon(Icons.Default.Send, "Send", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -103,18 +88,45 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
     ) { padding ->
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(horizontal = 12.dp),
+            modifier = Modifier.padding(padding).fillMaxSize().padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(messages) { msg ->
-                AnimatedVisibility(
-                    visible = true,
-                    enter = slideInVertically(initialOffsetY = { 50 }) + fadeIn()
-                ) {
-                    MessageBubble(msg)
+                MessageBubble(msg)
+            }
+        }
+    }
+}
+
+@Composable
+fun MessageBubble(message: Message) {
+    val align = if (message.isFromMe) Alignment.End else Alignment.Start
+    val bg = if (message.isFromMe) BlueGradient else androidx.compose.ui.graphics.SolidColor(DarkGray)
+    val shape = if (message.isFromMe) RoundedCornerShape(16.dp, 16.dp, 2.dp, 16.dp) 
+               else RoundedCornerShape(16.dp, 16.dp, 16.dp, 2.dp)
+
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = align) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 280.dp)
+                .clip(shape)
+                .background(bg)
+                .padding(10.dp)
+        ) {
+            Column {
+                Text(message.text, color = Color.White)
+                Row(modifier = Modifier.align(Alignment.End), verticalAlignment = Alignment.CenterVertically) {
+                    Text(message.timestamp, color = Color.White.copy(0.7f), fontSize = 10.sp)
+                    if (message.isFromMe) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        val icon = when(message.status) {
+                            MessageStatus.SENT -> Icons.Default.Check
+                            MessageStatus.DELIVERED -> Icons.Default.DoneAll
+                            MessageStatus.READ -> Icons.Default.DoneAll
+                        }
+                        val tint = if(message.status == MessageStatus.READ) Color(0xFF53EDC3) else Color.White.copy(0.7f)
+                        Icon(icon, null, modifier = Modifier.size(12.dp), tint = tint)
+                    }
                 }
             }
         }
