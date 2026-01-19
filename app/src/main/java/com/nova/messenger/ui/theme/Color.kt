@@ -2,22 +2,23 @@ package com.nova.messenger.ui.theme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-val Primary = Color(0xFF0088CC)
-val Secondary = Color(0xFF00A2E8)
-val Tertiary = Color(0xFF53EDC3)
+val Primary = Color(0xFF2979FF) // Bright Blue
+val Secondary = Color(0xFF00E5FF) // Cyan accent
+val BackgroundDark = Color(0xFF000000) // True Black for OLED
+val SurfaceDark = Color(0xFF121212) // Slightly lighter for cards
+val SurfaceLight = Color(0xFFFFFFFF)
 
-val DarkBackground = Color(0xFF0F0F0F) // Почти черный, но мягче
-val SurfaceDark = Color(0xFF1E1E1E)
-
-val LightBackground = Color(0xFFFFFFFF)
-val SurfaceLight = Color(0xFFF5F5F5)
-
-// Градиент для сообщений (как в Telegram/Insta)
-val BlueGradient = Brush.linearGradient(
+// Градиент для фона (Login Screen)
+val PremiumGradient = Brush.verticalGradient(
     colors = listOf(
-        Color(0xFF2AABEE),
-        Color(0xFF229ED9)
+        Color(0xFF141E30),
+        Color(0xFF243B55)
     )
 )
 
-val DarkGray = Color(0xFF212121)
+val CardGradient = Brush.linearGradient(
+    colors = listOf(
+        Color(0xFF1E1E1E),
+        Color(0xFF252525)
+    )
+)
