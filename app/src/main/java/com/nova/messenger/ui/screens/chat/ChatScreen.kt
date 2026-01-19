@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate // <--- ВОТ ЭТОГО НЕ ХВАТАЛО
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -40,23 +41,23 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
         if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1)
     }
 
-    // ТЕМНЫЕ ОБОИ (Градиент вместо картинки)
+    // ТЕМНЫЕ ОБОИ (Градиент)
     val wallpaperBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFF0F1724), // Глубокий темный верх
-            Color(0xFF1E2833), // Середина
-            Color(0xFF121212)  // Низ
+            Color(0xFF0F1724), 
+            Color(0xFF1E2833), 
+            Color(0xFF121212)
         )
     )
 
     Scaffold(
-        containerColor = Color.Transparent, // Прозрачный скаффолд для фона
+        containerColor = Color.Transparent, 
         topBar = {
             // Полупрозрачный хедер (Glass)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(TgSurface.copy(alpha = 0.85f)) // Blur simulation
+                    .background(TgSurface.copy(alpha = 0.85f))
             ) {
                 TopAppBar(
                     title = { 
@@ -98,7 +99,7 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 12.dp),
-                contentPadding = PaddingValues(bottom = 90.dp), // Место под плавающий бар
+                contentPadding = PaddingValues(bottom = 90.dp), 
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 items(messages) { msg ->
@@ -110,18 +111,18 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 8.dp, vertical = 12.dp) // Отступы (висит в воздухе)
+                    .padding(horizontal = 8.dp, vertical = 12.dp)
                     .fillMaxWidth()
                     .height(56.dp)
-                    .clip(RoundedCornerShape(28.dp)) // Сильное скругление (Pill)
-                    .background(Color(0xFF1E1E1E).copy(alpha = 0.85f)) // Полупрозрачность
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(28.dp)) // Стеклянный бортик
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(Color(0xFF1E1E1E).copy(alpha = 0.85f))
+                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(28.dp))
             ) {
                 Row(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Кнопка GIF (Квадратная иконка)
+                    // Кнопка GIF
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -161,6 +162,7 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
 
                     // Иконки справа
                     IconButton(onClick = {}) { 
+                        // Теперь rotate работает, так как мы добавили импорт
                         Icon(Icons.Default.AttachFile, null, tint = TgTextSec, modifier = Modifier.rotate(45f)) 
                     }
                     
@@ -169,7 +171,6 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
                             Icon(Icons.Outlined.CameraAlt, null, tint = TgTextSec) 
                         }
                     } else {
-                        // Кнопка отправки (Синий круг)
                         IconButton(
                             onClick = {
                                 MockRepository.sendMessage(chatId, text)
