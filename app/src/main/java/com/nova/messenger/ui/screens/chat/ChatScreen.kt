@@ -21,7 +21,7 @@ import androidx.navigation.NavController
 import com.nova.messenger.data.models.Message
 import com.nova.messenger.data.repository.MockRepository
 import com.nova.messenger.ui.components.MessageBubble
-import com.nova.messenger.utils.TimeUtils // IMPORT JAVA CLASS
+import com.nova.messenger.utils.TimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,19 +30,17 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
     var text by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    // Автоскролл вниз при добавлении сообщения
     LaunchedEffect(messages.size) {
         listState.animateScrollToItem(messages.size)
     }
 
+    // FIX: Удален параметр containerColor, цвет берется из темы
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { 
                     Column {
                         Text(chatName, style = MaterialTheme.typography.titleMedium)
-                        // Используем метод из JAVA класса
                         Text(
                             text = "online", 
                             style = MaterialTheme.typography.bodySmall,
@@ -85,14 +83,10 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
                         maxLines = 4
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    
-                    // Кнопка отправки с анимацией
                     IconButton(
                         onClick = {
                             if (text.isNotBlank()) {
-                                // ВЫЗОВ JAVA МЕТОДА: TimeUtils.getCurrentTime()
                                 val timeNow = TimeUtils.getCurrentTime()
-                                
                                 messages.add(Message("new_${System.currentTimeMillis()}", text, true, timeNow))
                                 text = ""
                             }
@@ -116,7 +110,6 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(messages) { msg ->
-                // Анимация появления для каждого сообщения
                 AnimatedVisibility(
                     visible = true,
                     enter = slideInVertically(initialOffsetY = { 50 }) + fadeIn()

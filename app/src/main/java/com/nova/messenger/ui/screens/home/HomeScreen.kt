@@ -14,19 +14,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.nova.messenger.data.repository.MockRepository
 import com.nova.messenger.ui.components.ChatItem
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     val chats = MockRepository.getChats()
     
-    // Эффект появления при загрузке
-    var isVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        isVisible = true
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -48,11 +41,11 @@ fun HomeScreen(navController: NavController) {
             contentPadding = PaddingValues(top = 8.dp)
         ) {
             itemsIndexed(chats) { index, chat ->
-                // Простая анимация появления (эмуляция staggered)
                 ChatItem(chat) { 
                     navController.navigate("chat/${chat.id}/${chat.username}") 
                 }
-                HorizontalDivider(
+                // FIX: Используем Divider вместо HorizontalDivider (для совместимости)
+                Divider(
                     modifier = Modifier.padding(start = 82.dp), 
                     thickness = 0.5.dp, 
                     color = Color.Gray.copy(alpha = 0.2f)
