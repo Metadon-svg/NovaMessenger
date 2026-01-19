@@ -11,10 +11,7 @@ object MockRepository {
     val currentUser = _currentUser.asStateFlow()
 
     private val _chats = MutableStateFlow(
-        listOf(
-            Chat("1", "Saved Messages", "Image", "17:48", 0, true, isPinned = true),
-            Chat("2", "Standoff 2", "Update!", "Dec 31", 0, true)
-        )
+        listOf(Chat("1", "Saved Messages", "Document.pdf", "17:48", 0, true, isPinned = true))
     )
     val chats = _chats.asStateFlow()
 
@@ -28,16 +25,19 @@ object MockRepository {
         addMessage(Message(System.currentTimeMillis().toString(), chatId, text, true, TimeUtils.getCurrentTime()))
     }
 
-    // ОТПРАВКА КАРТИНКИ
     fun sendImage(chatId: String, uri: String) {
         addMessage(Message(
-            id = System.currentTimeMillis().toString(),
-            chatId = chatId,
-            text = "",
-            isFromMe = true,
-            timestamp = TimeUtils.getCurrentTime(),
-            type = MessageType.IMAGE,
-            imageUrl = uri
+            id = System.currentTimeMillis().toString(), chatId = chatId, text = "", isFromMe = true,
+            timestamp = TimeUtils.getCurrentTime(), type = MessageType.IMAGE, mediaUrl = uri
+        ))
+    }
+
+    // НОВАЯ ФУНКЦИЯ: ОТПРАВКА ФАЙЛА
+    fun sendFile(chatId: String, uri: String, name: String, size: String) {
+        addMessage(Message(
+            id = System.currentTimeMillis().toString(), chatId = chatId, text = "", isFromMe = true,
+            timestamp = TimeUtils.getCurrentTime(), type = MessageType.FILE, 
+            mediaUrl = uri, fileName = name, fileSize = size
         ))
     }
 

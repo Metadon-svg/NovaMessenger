@@ -6,7 +6,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -34,6 +32,7 @@ import androidx.navigation.NavController
 import com.nova.messenger.data.repository.MockRepository
 import com.nova.messenger.ui.components.MessageBubble
 import com.nova.messenger.ui.theme.*
+import com.nova.messenger.utils.FileUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,13 +46,19 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
     
     var isAttachOpen by remember { mutableStateOf(false) }
 
-    // --- REAL IMAGE PICKER ---
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            // Отправляем картинку
-            MockRepository.sendImage(chatId, it.toString())
+    // --- FILE & IMAGE PICKERS ---
+    
+    // Для картинок
+    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { MockRepository.sendImage(chatId, it.toString()) }
+    }
+    
+    // Для файлов (Всех типов)
+    val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { 
+            val name = FileUtils.getFileName(context, it)
+            val size = FileUtils.getFileSize(context, it)
+            MockRepository.sendFile(chatId, it.toString(), name, size)
         }
     }
 
@@ -61,7 +66,6 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
         if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1)
     }
 
-    // Спокойный темный фон без жестких градиентов
     val bgModifier = Modifier.fillMaxSize().background(CleanChatBg)
 
     Scaffold(
@@ -115,70 +119,43 @@ fun ChatScreen(navController: NavController, chatId: String, chatName: String) {
             ) {
                 AttachMenu(onItemClick = { type ->
                     isAttachOpen = false
-                    if (type == "Gallery") {
-                        launcher.launch("image/*") // ОТКРЫВАЕТ ГАЛЕРЕЮ
-                    } else {
-                        Toast.makeText(context, "$type selected", Toast.LENGTH_SHORT).show()
+                    when(type) {
+                        "Gallery" -> imageLauncher.launch("image/*")
+                        "File" -> fileLauncher.launch("*/*") // Любой файл
+                        else -> Toast.makeText(context, "$type click", Toast.LENGTH_SHORT).show()
                     }
                 })
             }
 
-            // --- INPUT CAPSULE (FIXED ALIGNMENT) ---
+            // INPUT
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 8.dp, vertical = 12.dp)
                     .fillMaxWidth()
-                    .height(56.dp) // Чуть компактнее
+                    .height(56.dp)
                     .clip(RoundedCornerShape(28.dp))
-                    .background(CleanSurface) // Плотный цвет вместо прозрачного
+                    .background(CleanSurface)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically // ИДЕАЛЬНОЕ ВЫРАВНИВАНИЕ
-                ) {
-                    // Attach
+                Row(modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { isAttachOpen = !isAttachOpen }) { 
-                        Icon(
-                            Icons.Default.Add, null, 
-                            tint = if(isAttachOpen) AccentBlue else TextGray,
-                            modifier = Modifier.rotate(if(isAttachOpen) 45f else 0f)
-                        ) 
+                        Icon(Icons.Default.Add, null, tint = if(isAttachOpen) AccentBlue else TextGray, modifier = Modifier.rotate(if(isAttachOpen) 45f else 0f)) 
                     }
-
-                    // Input Field (Центровка)
                     Box(modifier = Modifier.weight(1f).padding(horizontal = 8.dp), contentAlignment = Alignment.CenterStart) {
-                        if (text.isEmpty()) {
-                            Text(
-                                "Message", 
-                                color = TextGray, 
-                                fontSize = 16.sp,
-                                modifier = Modifier.offset(y = (-1).dp) // Микро-коррекция визуальная
-                            )
-                        }
-                        
-                        // Используем BasicTextField или TextField с убранными паддингами для контроля
+                        if (text.isEmpty()) Text("Message", color = TextGray, fontSize = 16.sp, modifier = Modifier.offset(y = (-1).dp))
                         TextField(
-                            value = text, 
-                            onValueChange = { text = it },
-                            modifier = Modifier.fillMaxWidth(),
+                            value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(),
                             textStyle = TextStyle(fontSize = 16.sp, color = Color.White),
                             colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent, 
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent, 
-                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
                                 cursorColor = AccentBlue
                             ),
-                            singleLine = true,
-                            contentPadding = PaddingValues(0.dp) // УБИРАЕМ ЛИШНИЕ ОТСТУПЫ
+                            singleLine = true, contentPadding = PaddingValues(0.dp)
                         )
                     }
-                    
                     if (text.isNotBlank()) {
-                         IconButton(
-                            onClick = { MockRepository.sendMessage(chatId, text); text = "" },
-                        ) {
+                         IconButton(onClick = { MockRepository.sendMessage(chatId, text); text = "" }) {
                              Icon(Icons.Default.Send, null, tint = AccentBlue)
                         }
                     } else {
