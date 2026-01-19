@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.nova.messenger.data.repository.MockRepository
 import com.nova.messenger.ui.components.ChatItem
+import com.nova.messenger.ui.navigation.Screen
 import com.nova.messenger.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -41,19 +42,22 @@ fun HomeScreen(navController: NavController) {
                 drawerContentColor = TgTextMain,
                 modifier = Modifier.width(300.dp)
             ) {
-                // DRAWER HEADER
+                // DRAWER HEADER (КЛИКАБЕЛЬНЫЙ -> ПРОФИЛЬ)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF232E3C)) // Slightly lighter header
+                        .background(Color(0xFF232E3C))
+                        .clickable { 
+                            navController.navigate(Screen.Profile.route)
+                            scope.launch { drawerState.close() }
+                        }
                         .padding(16.dp)
                 ) {
                     Box(
                         modifier = Modifier.size(64.dp).clip(CircleShape).background(TgBlue),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Avatar image mock
-                        Icon(Icons.Default.Person, null, tint = Color.White, modifier = Modifier.size(32.dp))
+                        Text(user.username.take(1), fontSize = 28.sp, color = Color.White, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(user.username, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -62,17 +66,26 @@ fun HomeScreen(navController: NavController) {
                 
                 Divider(color = Color.Black, thickness = 0.5.dp)
 
-                // DRAWER ITEMS
-                DrawerItem(Icons.Default.Group, "New Group")
-                DrawerItem(Icons.Default.Person, "Contacts")
-                DrawerItem(Icons.Default.Call, "Calls")
-                DrawerItem(Icons.Default.Bookmark, "Saved Messages")
-                DrawerItem(Icons.Default.Settings, "Settings")
+                // DRAWER ITEMS (С ДЕЙСТВИЯМИ)
+                DrawerItem(Icons.Default.Bookmark, "Saved Messages") {
+                    // Открыть избранное
+                    navController.navigate(Screen.Chat.createRoute("1", "Saved Messages"))
+                    scope.launch { drawerState.close() }
+                }
+                
+                DrawerItem(Icons.Default.Settings, "Settings") {
+                    navController.navigate(Screen.Settings.route)
+                    scope.launch { drawerState.close() }
+                }
+
+                DrawerItem(Icons.Default.Group, "New Group") {}
+                DrawerItem(Icons.Default.Person, "Contacts") {}
+                DrawerItem(Icons.Default.Call, "Calls") {}
                 
                 Divider(color = Color.Black, thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
                 
-                DrawerItem(Icons.Default.PersonAdd, "Invite Friends")
-                DrawerItem(Icons.Default.Help, "Telegram Features")
+                DrawerItem(Icons.Default.PersonAdd, "Invite Friends") {}
+                DrawerItem(Icons.Default.Help, "Telegram Features") {}
             }
         }
     ) {
@@ -110,8 +123,9 @@ fun HomeScreen(navController: NavController) {
         ) { padding ->
             LazyColumn(modifier = Modifier.padding(padding)) {
                 items(chats) { chat ->
+                    // ВОТ ЗДЕСЬ БЫЛА ОШИБКА. ТЕПЕРЬ МЫ РЕАЛЬНО ПЕРЕХОДИМ.
                     ChatItem(chat) { 
-                        // Navigate to chat
+                        navController.navigate(Screen.Chat.createRoute(chat.id, chat.username)) 
                     }
                     Divider(color = Color.Black, thickness = 0.5.dp, modifier = Modifier.padding(start = 76.dp))
                 }
@@ -121,11 +135,11 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun DrawerItem(icon: ImageVector, text: String) {
+fun DrawerItem(icon: ImageVector, text: String, onClick: () -> Unit) {
     NavigationDrawerItem(
         label = { Text(text, color = Color.White) },
         selected = false,
-        onClick = {},
+        onClick = onClick, // Подключили нажатие
         icon = { Icon(icon, null, tint = Color.Gray) },
         colors = NavigationDrawerItemDefaults.colors(
             unselectedContainerColor = Color.Transparent
