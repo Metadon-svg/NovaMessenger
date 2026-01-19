@@ -1,32 +1,15 @@
 package com.nova.messenger.ui.theme
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-// --- New Premium Colors ---
-val Primary = Color(0xFF2979FF)
-val Secondary = Color(0xFF00E5FF)
-val BackgroundDark = Color(0xFF000000)
-val SurfaceDark = Color(0xFF121212)
-val SurfaceLight = Color(0xFFFFFFFF)
+// Telegram Dark Palette
+val TgBg = Color(0xFF17212B)         // Основной фон
+val TgItem = Color(0xFF17212B)       // Фон чатов
+val TgSurface = Color(0xFF232E3C)    // Поверхности (Appbar)
+val TgDivider = Color(0xFF111111)    // Разделители
+val TgBlue = Color(0xFF5288C1)       // Фирменный синий
+val TgTextMain = Color(0xFFFFFFFF)
+val TgTextSec = Color(0xFF7F91A4)    // Серый текст (время, био)
+val TgGreen = Color(0xFF49B669)      // Зеленый (имя)
 
-// --- Legacy Support (чтобы не ломался старый код) ---
-val Tertiary = Color(0xFF53EDC3)
-val LightBackground = Color(0xFFFFFFFF)
-val DarkBackground = Color(0xFF121212)
-val DarkGray = Color(0xFF212121)
-
-// Градиент для фона (Login Screen)
-val PremiumGradient = Brush.verticalGradient(
-    colors = listOf(
-        Color(0xFF141E30),
-        Color(0xFF243B55)
-    )
-)
-
-// Градиент для сообщений (Restored)
-val BlueGradient = Brush.linearGradient(
-    colors = listOf(
-        Color(0xFF2AABEE),
-        Color(0xFF229ED9)
-    )
-)
+val BadgeColor = Color(0xFF5C98C9)   // Бейдж сообщений (синий)
+val MutedBadge = Color(0xFF435363)   // Бейдж (серый)
