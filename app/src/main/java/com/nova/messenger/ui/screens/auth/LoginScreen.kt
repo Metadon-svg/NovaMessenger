@@ -18,25 +18,24 @@ import com.nova.messenger.ui.navigation.Screen
 import com.nova.messenger.ui.theme.PremiumGradient
 import com.nova.messenger.ui.theme.Primary
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
 
-    // Градиентный фон на весь экран
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(PremiumGradient),
         contentAlignment = Alignment.Center
     ) {
-        // Карточка "Стекло"
         Card(
             modifier = Modifier
                 .padding(24.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.Black.copy(alpha = 0.5f) // Полупрозрачность
+                containerColor = Color.Black.copy(alpha = 0.5f)
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
         ) {
@@ -44,7 +43,6 @@ fun LoginScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(32.dp)
             ) {
-                // Логотип
                 Box(
                     modifier = Modifier
                         .size(80.dp)
@@ -57,21 +55,12 @@ fun LoginScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text(
-                    "Welcome Back",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    "Enter the future of messaging",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                Text("Welcome Back", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Enter the future of messaging", fontSize = 14.sp, color = Color.Gray)
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Поле ввода (Стильное)
+                // FIX: Используем правильные параметры цветов для этой версии SDK
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
@@ -86,13 +75,14 @@ fun LoginScreen(navController: NavController) {
                         unfocusedBorderColor = Color.Gray,
                         focusedLabelColor = Primary,
                         unfocusedLabelColor = Color.Gray,
-                        containerColor = Color.Transparent
+                        // Убрали containerColor, используем focused/unfocused
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
                     )
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Кнопка (Большая и яркая)
                 Button(
                     onClick = { 
                         MockRepository.login(username.ifBlank { "User" })
@@ -100,9 +90,7 @@ fun LoginScreen(navController: NavController) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary)
                 ) {

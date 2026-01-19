@@ -2,14 +2,13 @@ package com.nova.messenger.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
     primary = Primary,
     secondary = Secondary,
     tertiary = Tertiary,
-    background = DarkBackground,
-    surface = DarkBackground
+    background = BackgroundDark,
+    surface = SurfaceDark
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -17,7 +16,7 @@ private val LightColorScheme = lightColorScheme(
     secondary = Secondary,
     tertiary = Tertiary,
     background = LightBackground,
-    surface = LightBackground
+    surface = SurfaceLight
 )
 
 @Composable

@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.nova.messenger.ui.navigation.Screen
-import com.nova.messenger.ui.theme.SurfaceDark
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +32,8 @@ fun SettingsScreen(navController: NavController) {
                 title = { Text("Settings", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        // FIX: Используем обычную стрелку вместо AutoMirrored
+                        Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
@@ -49,7 +48,7 @@ fun SettingsScreen(navController: NavController) {
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
-            // Group 1: General
+            // Group 1
             SettingsGroup("General") {
                 SettingsTile(Icons.Default.Notifications, "Notifications", true) {
                     Switch(checked = notifications, onCheckedChange = { notifications = it })
@@ -60,7 +59,7 @@ fun SettingsScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Group 2: Privacy
+            // Group 2
             SettingsGroup("Privacy") {
                 SettingsTile(Icons.Default.Lock, "Security Code", true) {
                     Switch(checked = biometrics, onCheckedChange = { biometrics = it })
@@ -71,7 +70,6 @@ fun SettingsScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Logout Button
             Button(
                 onClick = { 
                     navController.navigate(Screen.Login.route) { popUpTo(0) } 
@@ -123,7 +121,7 @@ fun SettingsTile(
         if (trailing != null) {
             trailing()
         } else {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, modifier = Modifier.size(16.dp), tint = Color.Gray) // Chevron
+            Icon(Icons.Default.ArrowForward, null, modifier = Modifier.size(16.dp), tint = Color.Gray)
         }
     }
 }
