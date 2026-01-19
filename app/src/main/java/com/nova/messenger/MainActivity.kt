@@ -3,10 +3,9 @@ package com.nova.messenger
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.activity.enableEdgeToEdge // ВАЖНО ДЛЯ СТАТУС БАРА
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,37 +21,37 @@ import com.nova.messenger.ui.screens.chat.ChatScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge() // ВКЛЮЧАЕМ ПОЛНОЭКРАННЫЙ РЕЖИМ
         super.onCreate(savedInstanceState)
         setContent {
             NovaMessengerTheme {
                 val navController = rememberNavController()
                 
-                // АНИМАЦИИ
+                // PREMIUM TRANSITIONS: Scale + Fade
                 NavHost(
                     navController = navController, 
                     startDestination = Screen.Login.route,
                     enterTransition = {
-                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        scaleIn(initialScale = 0.95f, animationSpec = tween(300)) + 
+                        fadeIn(animationSpec = tween(300))
                     },
                     exitTransition = {
-                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        scaleOut(targetScale = 1.05f, animationSpec = tween(300)) + 
+                        fadeOut(animationSpec = tween(300))
                     },
                     popEnterTransition = {
-                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        scaleIn(initialScale = 1.05f, animationSpec = tween(300)) + 
+                        fadeIn(animationSpec = tween(300))
                     },
                     popExitTransition = {
-                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        scaleOut(targetScale = 0.95f, animationSpec = tween(300)) + 
+                        fadeOut(animationSpec = tween(300))
                     }
                 ) {
                     
                     composable(Screen.Login.route) { LoginScreen(navController) }
                     
-                    // Home - особый случай, без анимации при старте
-                    composable(
-                        Screen.Home.route,
-                        enterTransition = { fadeIn(tween(300)) },
-                        exitTransition = { fadeOut(tween(300)) }
-                    ) { HomeScreen(navController) }
+                    composable(Screen.Home.route) { HomeScreen(navController) }
                     
                     composable(Screen.Profile.route) { ProfileScreen(navController) }
                     
